@@ -1,0 +1,8 @@
+Put external libs (dependencies)sources here.
+
+The advised structure is as follows:
+
+/
+|--<Dependency1>/ - Dependency1 folder. (put dependency1 dlls here)
+|--...
+|--ProjectN/ - ProjectN folder 

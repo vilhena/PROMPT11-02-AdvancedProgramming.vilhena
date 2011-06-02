@@ -1,0 +1,11 @@
+Put your sources here.
+
+The advised structure is as follows:
+
+/
+|--<Solution1>.sln - 
+|--...
+|--<SolutionN>.sln (if more than one solution needed)
+|--<Project1>/ - Project1 folder
+|--...
+|--<ProjectN>/ - ProjectN folder
