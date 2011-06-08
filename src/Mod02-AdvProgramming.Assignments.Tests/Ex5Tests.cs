@@ -35,6 +35,32 @@ namespace Mod02_AdvProgramming.Assignments.Tests
         }
 
         [Test]
+        public void CustomerCountriesWithCitiesSortedByCountryShouldReturn21Countries()
+        {
+            var citiesSortedByCountry = Ex5.CustomerCountriesWithCitiesSortedByCountry();
+
+
+            Assert.AreEqual(
+                21
+                , citiesSortedByCountry.Count());
+        }
+
+        [Test]
+        public void CustomerCountriesWithCitiesSortedByCountryLisbonShouldContainLisbonOnly()
+        {
+            var citiesSortedByCountry = Ex5.CustomerCountriesWithCitiesSortedByCountry();
+
+
+            Assert.AreEqual(
+                1
+                , citiesSortedByCountry.Where(x=>x.Country == "Portugal").Select(s=>s.Cities).Count());
+            Assert.AreEqual(
+                "Lisboa"
+                , citiesSortedByCountry.Where(x => x.Country == "Portugal").Single().Cities.Single()
+                );
+        }
+
+        [Test]
         public void CustomerCountriesSortedSelectFirstWitchIsFaster()
         {
             // Arrange
@@ -44,13 +70,13 @@ namespace Mod02_AdvProgramming.Assignments.Tests
             var clock2 = new Stopwatch();
 
             clock1.Start();
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var countries = Ex5.CustomerCountriesSorted();
             }
             clock1.Stop();
             clock2.Start();
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var countries2 = Ex5.CustomerCountriesSortedSelectFirst();
             }

@@ -21,8 +21,25 @@ namespace Mod02_AdvProgramming.Assignments.Tests {
             //var totalsByCountry = Ex5.TotalsByCountrySortedByCountry();
             //ObjectDumper.Write(totalsByCountry);
 
+            var totalsByCountry = Ex5.TotalsByCountryByPeriodSortedByCountry(Ex5.PeriodRange.Year);
+            ObjectDumper.Write(totalsByCountry);
+            Console.ReadLine();
+
+            var totalsByCountry2 = Ex5.TotalsByCountryByPeriodSortedByCountry(Ex5.PeriodRange.Semester);
+            ObjectDumper.Write(totalsByCountry2);
+            Console.ReadLine();
+
+            var totalsByCountry3 = Ex5.TotalsByCountryByPeriodSortedByCountry(Ex5.PeriodRange.Trimester);
+            ObjectDumper.Write(totalsByCountry3);
+            Console.ReadLine();
+
+            var totalsByCountry4 = Ex5.TotalsByCountryByPeriodSortedByCountry(Ex5.PeriodRange.Month);
+            ObjectDumper.Write(totalsByCountry4);
+            Console.ReadLine();
+
             //var cities = SampleData.LoadCustomersFromXML().Select(c => new { c.City, c.Country }).OrderBy(cc => cc.City);
             //ObjectDumper.Write(cities);
+            Console.ReadLine();
         }
     }
 }

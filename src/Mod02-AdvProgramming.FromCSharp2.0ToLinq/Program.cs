@@ -7,6 +7,9 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+using System.IO;
+
 namespace Mod02_AdvProgramming_FromCSharp2_0ToLinq 
 {
     using System.Collections.Generic;
@@ -19,13 +22,42 @@ namespace Mod02_AdvProgramming_FromCSharp2_0ToLinq
     /// </summary>
     public class Program 
     {
+        public static IEnumerable<string> GetFileLines(string filename)
+        {
+            var f = new StreamReader(filename);
+            while (!f.EndOfStream)
+            {
+                yield return f.ReadLine();
+            }
+        }
+        public static IEnumerable<int> GetLines()
+        {
+            var i = 0;
+            while (true)
+            {
+                yield return i++;
+            }
+        }
+
         /// <summary>
         /// The program entry point.
         /// </summary>
         /// <param name="args">The program arguments.</param>
         public static void Main(string[] args)
         {
+            foreach (var i in GetLines().
+                
+                Zip(GetFileLines(
+                @"C:\Users\gnvilhena\PROMPT\uc01\repos\PROMPT11-02-AdvancedProgramming.vilhena\src\Mod02-AdvProgramming.FromCSharp2.0ToLinq\Program.cs")
+                , (s, i) => s + i))
+            {
+                Console.WriteLine(i);
+                Console.ReadLine();
+            }
+
+            
             #region 1 - All Cities that starts with letter M and the number of Customers in each one
+
             // Old fashioned way (C# 2.0)
             //List<Result> results = new List<Result>();
             //foreach (Customer c in SampleData.LoadCustomersFromMemory())
@@ -54,6 +86,7 @@ namespace Mod02_AdvProgramming_FromCSharp2_0ToLinq
             #endregion
 
             #region 2 - All Cities that starts with letter M and the number of Customers in each one
+
             // More modern Way (C#3.0)
 
             // 1 Automatic Proerties in Customers
@@ -89,6 +122,7 @@ namespace Mod02_AdvProgramming_FromCSharp2_0ToLinq
             #endregion
 
             #region 3 - All Cities that starts with letter M and the number of Customers in each one
+
             // Now with Linq
             //var query = from c in Customer.LoadCustomersFromMemoryNew()
             //                            where c.City.StartsWith("M")
@@ -144,10 +178,10 @@ namespace Mod02_AdvProgramming_FromCSharp2_0ToLinq
             //             select new { City = g.Key, Count = g.Count() };
 
             //ObjectDumper.Write(query);
-            
+
 
             #endregion
-            
+
         }
 
     }
