@@ -14,7 +14,8 @@ namespace DIChelas
 
         public T GetInstance<T>()
         {
-            throw new NotImplementedException();
+            Type target = _myBinder.TargetOf(typeof(T));
+            return (T) Activator.CreateInstance(target);
         }
     }
 }

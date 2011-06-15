@@ -296,7 +296,6 @@ namespace DIChelas.Tests {
 
         #endregion Multiple specifications
 
-
         #region Custom Resolver tests
         [Test]
         public void ShouldReturnSomaClass6NotBoundAndCreatedByTheCustomResolver() {
