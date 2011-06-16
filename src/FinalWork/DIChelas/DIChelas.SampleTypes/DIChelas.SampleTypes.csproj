@@ -65,7 +65,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DIChelas\DIChelas.csproj">
       <Project>{6666CD41-C05E-43B4-B43E-B41B5871E8DB}</Project>
-      <Name>DIChelas</Name>
+      <Name>DIChelas %28FinalWork\Assignments\DIChelas\DIChelas%29</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
