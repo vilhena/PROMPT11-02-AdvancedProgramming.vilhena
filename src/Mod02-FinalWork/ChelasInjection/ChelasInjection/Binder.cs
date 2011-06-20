@@ -60,21 +60,22 @@ namespace ChelasInjection
             return new TypeBinder<Target>(this);
         }
 
-
         public ITypeBinder<Source> Bind<Source>()
         {
             return this.Bind<Source, Source>();
         }
 
-        internal object CustomResolve(Type type)
+
+        internal KeyValuePair<ResolverHandler, object> CustomResolve(Type type)
         {
-            foreach (var @delegate in CustomResolver.GetInvocationList())
-            {
-                var objRet = ((ResolverHandler) @delegate)(this, type);
-                if (objRet != null)
-                    return objRet;
-            }
-            return null;
+            return CustomResolver
+                .GetInvocationList()
+                .Select(
+                @delegate => new KeyValuePair<ResolverHandler, object>(
+                    ((ResolverHandler)@delegate),
+                    ((ResolverHandler)@delegate)(this, type)
+                ))
+                .FirstOrDefault(objRet => objRet.Value != null);
         }
 
         internal bool IsSingleton(Type type)
@@ -86,8 +87,6 @@ namespace ChelasInjection
             }
             return false;
         }
-
-        
 
         internal bool IsConfigured(Type type)
         {

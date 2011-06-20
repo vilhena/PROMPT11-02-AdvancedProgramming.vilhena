@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ChelasInjection.Exceptions
 {
     [Serializable]
-    public class DIChelasException : Exception
+    public class ChelasInjectionException : Exception
     {
         //
         // For guidelines regarding the creation of new exception types, see
@@ -13,19 +13,19 @@ namespace ChelasInjection.Exceptions
         //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
         //
 
-        public DIChelasException()
+        public ChelasInjectionException()
         {
         }
 
-        public DIChelasException(string message) : base(message)
+        public ChelasInjectionException(string message) : base(message)
         {
         }
 
-        public DIChelasException(string message, Exception inner) : base(message, inner)
+        public ChelasInjectionException(string message, Exception inner) : base(message, inner)
         {
         }
 
-        protected DIChelasException(
+        protected ChelasInjectionException(
             SerializationInfo info,
             StreamingContext context) : base(info, context)
         {

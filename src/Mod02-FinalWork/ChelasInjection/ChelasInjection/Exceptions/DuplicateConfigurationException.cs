@@ -1,10 +1,10 @@
-using System;
-using System.Runtime.Serialization;
-
 namespace ChelasInjection.Exceptions
 {
+    using System;
+    using System.Runtime.Serialization;
+
     [Serializable]
-    public class CircularDependencyException : ChelasInjectionException
+    public class DuplicateConfigurationException : ChelasInjectionException
     {
         //
         // For guidelines regarding the creation of new exception types, see
@@ -13,23 +13,22 @@ namespace ChelasInjection.Exceptions
         //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
         //
 
-        public CircularDependencyException()
+        public DuplicateConfigurationException()
         {
         }
 
-        public CircularDependencyException(string message)
+        public DuplicateConfigurationException(string message)
             : base(message)
         {
         }
 
-        public CircularDependencyException(string message, Exception inner)
+        public DuplicateConfigurationException(string message, Exception inner)
             : base(message, inner)
         {
         }
 
-        protected CircularDependencyException(
-            SerializationInfo info,
-            StreamingContext context)
+        protected DuplicateConfigurationException(
+            SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

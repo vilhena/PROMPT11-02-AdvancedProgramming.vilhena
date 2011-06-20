@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ChelasInjection.Exceptions
 {
     [Serializable]
-    public class UnboundTypeException : DIChelasException
+    public class UnboundTypeException : ChelasInjectionException
     {
         //
         // For guidelines regarding the creation of new exception types, see

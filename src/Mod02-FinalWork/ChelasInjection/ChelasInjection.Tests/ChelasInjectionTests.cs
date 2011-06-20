@@ -15,12 +15,14 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 
 namespace ChelasInjection.Tests {
     using Exceptions;
     using NUnit.Framework;
     using SampleTypes;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Includes NUnit tests to the ChelasInjection infrastructure. This class tests
@@ -392,32 +394,45 @@ namespace ChelasInjection.Tests {
         }
         #endregion Custom Resolver tests
 
-        #region My Custom Tests
+        #region My Custom Tests Vilhena
 
         [Test]
-        public void PerformanceCreating10000SomeClass4ShouldBeLessThan10TimesNormalNew()
+        public void PerformanceCreating100000SomeClass4ShouldBeLessThan2TimesNormalNew()
         {
             // Arrange
             var newClock = new Stopwatch();
             var diClock = new Stopwatch();
- 
-            // Act
-            newClock.Start();
-            for (int i = 0; i < 10000; i++)
-            {
-                var obj = new SomeClass4();
-            }
-            newClock.Stop();
 
+            ISomeInterface3 localVar = null;
+
+
+            //Exludes the first that builds Expressiol call
+            localVar = _injector.GetInstance<ISomeInterface3>();
             diClock.Start();
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < (100000 - 1); i++)
             {
-                var obj = _injector.GetInstance<SomeClass4>();
+                localVar = _injector.GetInstance<ISomeInterface3>();
             }
             diClock.Stop();
 
+            Assert.NotNull(localVar);
+
+            // Act
+            newClock.Start();
+            
+
+            for (int i = 0; i < (100000 -1); i++)
+            {
+                var i1 = new SomeInterface1Impl();
+                var i2 = new SomeInterface2Impl(i1);
+                localVar = new SomeInterface3Impl(10,i2,i1,"SLB");
+            }
+            newClock.Stop();
+
+            Assert.NotNull(localVar);
+
             //Assert
-            Assert.LessOrEqual(diClock.ElapsedTicks/newClock.ElapsedTicks, 10);
+            Assert.LessOrEqual(diClock.ElapsedTicks/newClock.ElapsedTicks, 2);
         }
 
         #endregion

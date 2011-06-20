@@ -9,10 +9,68 @@ using Ader.Text;
 
 namespace Mod02_AdvProgramming.PhotoAlbums
 {
+    internal class Z
+    {
+        public int X { get; set; }
+        public string Y { get; set; }
+
+        public Z(int x, string y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
+
     class Program
     {
+        static void Eval(Expression<Func<object >> func)
+        {
+            var i = 0;
+        }
+
         static void Main(string[] args)
         {
+            
+            var localvar1 = Expression.Variable(typeof (int), "newInt");
+            var localvar2 = Expression.Variable(typeof (string), "newString");
+            var localvar3 = Expression.Variable(typeof (Z), "newZ");
+
+            var localAssing1 = Expression.Assign(localvar1,
+                                                 Expression.New(typeof (int)));
+            var localAssing2 = Expression.Assign(localvar2, Expression.Constant("Teste"));
+
+            
+
+            var listLocal = new List<ParameterExpression>();
+            listLocal.Add(localvar1);
+            listLocal.Add(localvar2);
+            
+
+            var localAssign3 = Expression.Assign(localvar3,
+                                                 Expression.New(
+                                                     typeof (Z).GetConstructor(new Type[]
+                                                                                   {typeof (int), typeof (string)}),
+                                                     listLocal.ToArray()
+                                                     ));
+            listLocal.Add(localvar3);
+
+            var block = Expression.Block(
+                listLocal.ToArray(),
+                localAssing1,
+                localAssing2,
+                localAssign3,
+                localvar3
+                );
+
+            var lamb = Expression.Lambda<Func<object>>(block);
+
+            var getnewZ = lamb.Compile();
+
+            var newZ1 = getnewZ();
+            var newZ2 = getnewZ();
+
+            Eval(() => getnewZ());
 
             // Listing c:\windows desdendant files in as eager way
             //foreach (FileInfo fileInfo in DirectoryEnumerator.GetDirectoryEnumeratorEager(new DirectoryInfo("c:\\windows")))
@@ -85,6 +143,9 @@ namespace Mod02_AdvProgramming.PhotoAlbums
             //lb.Compile().DynamicInvoke()
 
             //Console.WriteLine(lb.ToString());
+
+            
+
 
             ImagesSequence im = new ImagesSequence(@"c:\windows");
 
