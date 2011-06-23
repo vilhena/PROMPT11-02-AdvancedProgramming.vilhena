@@ -43,7 +43,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\BlackAttribute.cs" />
+    <Compile Include="Attributes\RedAttribute.cs" />
+    <Compile Include="Attributes\YellowAttribute.cs" />
+    <Compile Include="SomeClass16.cs" />
+    <Compile Include="SomeClass15.cs" />
     <Compile Include="ISomeInterface6.cs" />
+    <Compile Include="ISomeInterface7.cs" />
+    <Compile Include="ISomeInterface8.cs" />
+    <Compile Include="SomeClass10.cs" />
+    <Compile Include="SomeClass11.cs" />
+    <Compile Include="SomeClass12.cs" />
+    <Compile Include="SomeClass13.cs" />
+    <Compile Include="SomeClass14.cs" />
     <Compile Include="SomeClass8.cs" />
     <Compile Include="SomeClass7.cs" />
     <Compile Include="SomeClass6.cs" />
@@ -52,6 +64,7 @@
     <Compile Include="SomeClass3.cs" />
     <Compile Include="SomeClass2.cs" />
     <Compile Include="SomeClass1.cs" />
+    <Compile Include="SomeClass9.cs" />
     <Compile Include="SomeInterface5Impl.cs" />
     <Compile Include="ISomeInterface5.cs" />
     <Compile Include="ISomeInterface1.cs" />
@@ -63,6 +76,9 @@
     <Compile Include="SomeInterface2Impl.cs" />
     <Compile Include="SomeInterface3Impl.cs" />
     <Compile Include="SomeInterface4Impl.cs" />
+    <Compile Include="SomeInterface7And8Yellow.cs" />
+    <Compile Include="SomeInterface7Default.cs" />
+    <Compile Include="SomeInterface7Red.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChelasInjection\ChelasInjection.csproj">

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using ChelasInjection.Attributes;
 
 namespace ChelasInjection
@@ -9,8 +10,8 @@ namespace ChelasInjection
 
     public abstract partial class Binder
     {
-        private readonly Dictionary<Type, ITypeConfiguration> _configuration = new Dictionary<Type, ITypeConfiguration>();
-        internal Dictionary<Type, ITypeConfiguration> Configuration
+        private readonly Dictionary<TypeKey, ITypeConfiguration> _configuration = new Dictionary<TypeKey, ITypeConfiguration>();
+        internal Dictionary<TypeKey, ITypeConfiguration> Configuration
         {
             get { return _configuration; }
         }
@@ -20,6 +21,8 @@ namespace ChelasInjection
         public void Configure()
         {
             InternalConfigure();
+            EndLastBind();
+
         }
 
         protected abstract void InternalConfigure();
@@ -32,32 +35,81 @@ namespace ChelasInjection
             var sourceType = typeof (Source);
             var targetType = typeof (Target);
 
-            if (!Configuration.ContainsKey(sourceType))
-            {
-                this.CurrentConfiguration =
-                    new TypeConfiguration(sourceType, targetType);
+            EndLastBind();
 
-                Configuration.Add(sourceType, this.CurrentConfiguration);
+            this.CurrentConfiguration =
+                new TypeConfiguration(sourceType, targetType);
 
-                this.CurrentConfiguration.ConstructorType = ConstructorType.Default;
 
-                this.CurrentConfiguration.Constructor =
-                    targetType.GetConstructors().Where(
-                        c =>
-                        c.GetCustomAttributes(false).Where(a => a.GetType().Equals(typeof (DefaultConstructorAttribute))) !=
-                        null).FirstOrDefault();
-
-                if (this.CurrentConfiguration.Constructor == null)
-                {
-                    //default ctor with max parameters
-                    this.CurrentConfiguration.Constructor =
-                        targetType.GetConstructors().Where(c => c.GetParameters().Length ==
-                                                                     targetType.GetConstructors().Max(
-                                                                         x => x.GetParameters().Length)).First();
-                }
-
-            }
             return new TypeBinder<Target>(this);
+        }
+
+        private void EndLastBind()
+        {
+            
+            if (this.CurrentConfiguration != null)
+            {
+                AddConfiguration(this.CurrentConfiguration);
+            }
+        }
+
+        private void AddConfiguration(ITypeConfiguration config)
+        {
+            var typeKey = new TypeKey(config.Source, config.ArgumentType);
+
+            if (Configuration.ContainsKey(typeKey))
+                Configuration[typeKey] = config;
+            else
+                Configuration.Add(typeKey, config);
+
+            if (config.Constructor == null)
+                FindConstructor(config);
+        }
+
+        private void FindConstructor(ITypeConfiguration configuration)
+        {
+            configuration.ConstructorType = ConstructorType.Default;
+
+            configuration.Constructor =
+                configuration.Target.GetConstructors().Where(
+                    c =>
+                    c.GetCustomAttributes(false)
+                        .Where(a => a.GetType().Equals(typeof(DefaultConstructorAttribute))).FirstOrDefault() != null)
+                    .FirstOrDefault();
+
+            if (configuration.Constructor == null)
+            {
+
+                var availableConstructors = configuration.Target.GetConstructors()
+                    .Where(constructorInfo => constructorInfo.GetParameters()
+                                                  .All(p => TargetTypeIsConfigured(new TypeKey(p.ParameterType)))).
+                    ToArray();
+
+                //default ctor with max parameters
+                configuration.Constructor =
+                    availableConstructors.Where(c => c.GetParameters().Length ==
+                                                     availableConstructors.Max(
+                                                         x => x.GetParameters().Length))
+                        .FirstOrDefault();
+
+                if (configuration.Constructor == null)
+                {
+                    configuration.Constructor = configuration.Target.GetConstructors().First();
+
+                    if (configuration.Constructor == null)
+                        throw new NotImplementedException("CANNOT FIND CONSTRUCTOR");
+                }
+            }
+        }
+
+        private bool TargetTypeIsConfigured(TypeKey targetType)
+        {
+            if (_configuration.ContainsKey(targetType))
+                return true;
+            if (_configuration.Values.FirstOrDefault(c => c.Target == targetType.Type) != null)
+                return true;
+
+            return false;
         }
 
         public ITypeBinder<Source> Bind<Source>()
@@ -68,17 +120,28 @@ namespace ChelasInjection
 
         internal KeyValuePair<ResolverHandler, object> CustomResolve(Type type)
         {
-            return CustomResolver
+            ResolverHandler del = null;
+            object obj = null;
+
+            CustomResolver
                 .GetInvocationList()
-                .Select(
-                @delegate => new KeyValuePair<ResolverHandler, object>(
-                    ((ResolverHandler)@delegate),
-                    ((ResolverHandler)@delegate)(this, type)
-                ))
-                .FirstOrDefault(objRet => objRet.Value != null);
+                .FirstOrDefault(d =>
+                                    {
+                                        del = (ResolverHandler)d;
+                                        obj = del(this, type);
+                                        return obj != null;
+                                    });
+
+            return new KeyValuePair<ResolverHandler, object>(del, obj);
+            //.Select(
+            //@delegate => new KeyValuePair<ResolverHandler, object>(
+            //    ((ResolverHandler)@delegate),
+            //    ((ResolverHandler)@delegate)(this, type)
+            //))
+            //.FirstOrDefault(objRet => objRet.Value != null);
         }
 
-        internal bool IsSingleton(Type type)
+        internal bool IsSingleton(TypeKey type)
         {
             if (_configuration.ContainsKey(type))
             {
@@ -88,12 +151,12 @@ namespace ChelasInjection
             return false;
         }
 
-        internal bool IsConfigured(Type type)
+        internal bool IsConfigured(TypeKey type)
         {
             return (_configuration.ContainsKey(type));
         }
 
-        internal Action<object> GetInitializeObjectWith(Type type)
+        internal Action<object> GetInitializeObjectWith(TypeKey type)
         {
             if (_configuration.ContainsKey(type))
             {

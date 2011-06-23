@@ -51,6 +51,8 @@
     <Compile Include="Exceptions\ChelasInjectionException.cs" />
     <Compile Include="Exceptions\CircularDependencyException.cs" />
     <Compile Include="Exceptions\DuplicateConfigurationException.cs" />
+    <Compile Include="Exceptions\MultipleBindException.cs" />
+    <Compile Include="Exceptions\MultipleDefaultConstructorAttributesException.cs" />
     <Compile Include="Exceptions\UnboundTypeException.cs" />
     <Compile Include="IActivationBinder.cs" />
     <Compile Include="IConstructorBinder.cs" />

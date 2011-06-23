@@ -21,8 +21,18 @@ namespace ChelasInjection
 
         public T GetInstance<T>()
         {
-            return (T) _myResolver.Resolve(typeof (T));
+            return (T) _myResolver.Resolve(new TypeKey(typeof(T)));
         }
-        
+
+        public T GetInstance<T, TA>() where TA : Attribute
+        {
+            return (T) _myResolver.Resolve(new TypeKey(typeof (T), typeof (TA)));
+        }
+
+        public T GetInstance<T>(string name)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

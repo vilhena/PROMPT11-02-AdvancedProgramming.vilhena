@@ -55,6 +55,12 @@ namespace ChelasInjection
                     = (o => initialization((T) o));
                 return this;
             }
+
+            public void WhenArgumentHas<TAttribute>() where TAttribute : Attribute
+            {
+                this._binder.CurrentConfiguration.IsArgumentDependent = true;
+                this._binder.CurrentConfiguration.ArgumentType = typeof (TAttribute);
+            }
         }
 
     }

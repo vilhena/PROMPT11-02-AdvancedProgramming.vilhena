@@ -17,6 +17,7 @@
 
 using System;
 using System.Diagnostics;
+using ChelasInjection.SampleTypes.Attributes;
 
 namespace ChelasInjection.Tests {
     using Exceptions;
@@ -50,10 +51,12 @@ namespace ChelasInjection.Tests {
             _injector = new Injector(new MyBinder());
         }
 
+
         #region Instance creation
 
         [Test]
-        public void ShouldCreateASomeInterface1ImplInstanceForISomeInterface1Request() {
+        public void ShouldCreateASomeInterface1ImplInstanceForISomeInterface1Request()
+        {
             // Arrange
 
 
@@ -66,7 +69,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldCreateASomeInterface2ImplInstanceForISomeInterface2RequestAndAlsoCreateItsDependencies() {
+        public void ShouldCreateASomeInterface2ImplInstanceForISomeInterface2RequestAndAlsoCreateItsDependencies()
+        {
 
             ISomeInterface2 i2impl = _injector.GetInstance<ISomeInterface2>();
 
@@ -76,7 +80,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldCreateASomeInterface3ImplInstanceForISomeInterface2RequestAndAlsoCreateItsDependencies() {
+        public void ShouldCreateASomeInterface3ImplInstanceForISomeInterface2RequestAndAlsoCreateItsDependencies()
+        {
 
             ISomeInterface3 i3impl = _injector.GetInstance<ISomeInterface3>();
 
@@ -87,7 +92,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldCreateASomeClass4InstanceForSomeClass4Request() {
+        public void ShouldCreateASomeClass4InstanceForSomeClass4Request()
+        {
             // Arrange
 
             // Act
@@ -98,7 +104,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test, ExpectedException(typeof(CircularDependencyException))]
-        public void ShouldThrowCircularDependencyExceptionOnInstantiationForSomeClass1() {
+        public void ShouldThrowCircularDependencyExceptionOnInstantiationForSomeClass1()
+        {
             // Arrange
 
             // Act
@@ -135,22 +142,23 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldCreateASomeClass2InstanceForSomeClass2RequestWithSelfBindConfiguration()
+        public void ShouldCreateASomeClass9InstanceForSomeClass9RequestWithSelfBindConfiguration()
         {
             // Arrange
 
             // Act
-            SomeClass2 sc2 = _injector.GetInstance<SomeClass2>();
+            SomeClass9 sc9 = _injector.GetInstance<SomeClass9>();
 
             // Assert
-            Assert.AreEqual(sc2.GetType(), typeof(SomeClass2));
+            Assert.IsNotNull(sc9);
         }
 
         #endregion Instance creation
 
         #region Activation tests
         [Test]
-        public void ShouldHavePerRequestAsDefaultActivation() {
+        public void ShouldHavePerRequestAsDefaultActivation()
+        {
             // Arrange
 
             // Act
@@ -164,7 +172,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldHaveDefautActivationOnDependencies() {
+        public void ShouldHaveDefautActivationOnDependencies()
+        {
             // Arrange
 
             // Act
@@ -177,7 +186,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldHavePerRequestActivationForISomeInterface2Request() {
+        public void ShouldHavePerRequestActivationForISomeInterface2Request()
+        {
             // Arrange
 
             // Act
@@ -192,7 +202,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldHaveSingletonActivationForISomeInterface3Request() {
+        public void ShouldHaveSingletonActivationForISomeInterface3Request()
+        {
             // Arrange
 
             // Act
@@ -205,7 +216,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldHavePerCallActivationForDependenciesISomeInterface3Instances() {
+        public void ShouldHavePerCallActivationForDependenciesISomeInterface3Instances()
+        {
             // Arrange
 
             // Act
@@ -221,7 +233,8 @@ namespace ChelasInjection.Tests {
 
         #region Instance Initialization & construction
         [Test]
-        public void ShouldExecuteInitializationExpressionForISomeInterface2Impl() {
+        public void ShouldExecuteInitializationExpressionForISomeInterface2Impl()
+        {
             // Arrange
 
             // Act
@@ -236,7 +249,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldChooseTheConstructorWithMoreBindedArgumenstByDefault() {
+        public void ShouldChooseTheConstructorWithMoreBindedArgumenstByDefault()
+        {
             // Arrange
 
             // Act
@@ -250,7 +264,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldChooseTheConstructorAnotatedWithDefaulAttributeForISomeInterface5() {
+        public void ShouldChooseTheConstructorAnotatedWithDefaulAttributeForISomeInterface5()
+        {
             // Arrange
 
             // Act
@@ -263,8 +278,21 @@ namespace ChelasInjection.Tests {
 
         }
 
+        [Test, ExpectedException(typeof(MultipleDefaultConstructorAttributesException))]
+        public void ShouldThrowMultipleDefaultConstructorAttributesExceptionWhenForSomeClass10BecauseHasMultipleConstructorsWithDefaultConstructorAttribute()
+        {
+            // Arrange
+
+            // Act
+            _injector.GetInstance<SomeClass10>();
+
+
+            // Assert
+        }
+
         [Test]
-        public void ShouldChooseTheCorrectConstructorWhenWithConstructorOperatorIsUsedForISomeInterface2() {
+        public void ShouldChooseTheCorrectConstructorWhenWithConstructorOperatorIsUsedForISomeInterface2()
+        {
             // Arrange
 
             // Act
@@ -280,7 +308,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldChooseTheNoArgumentsConstructorWhenNoArgumentsConstructorOperatorIsUsedForISomeInterface1() {
+        public void ShouldChooseTheNoArgumentsConstructorWhenNoArgumentsConstructorOperatorIsUsedForISomeInterface1()
+        {
             // Arrange
 
             // Act
@@ -297,7 +326,8 @@ namespace ChelasInjection.Tests {
         #region Multiple specifications
 
         [Test]
-        public void ShouldUseTheLastBindForISomeInterface4() {
+        public void ShouldUseTheLastBindForISomeInterface4()
+        {
             // Arrange
 
             // Act
@@ -312,7 +342,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldUseTheLastConstructorDefinitionInOneBindForISomeInterface3() {
+        public void ShouldUseTheLastConstructorDefinitionInOneBindForISomeInterface3()
+        {
             // Arrange
 
             // Act
@@ -329,7 +360,8 @@ namespace ChelasInjection.Tests {
 
         #region Custom Resolver tests
         [Test]
-        public void ShouldReturnSomeClass6NotBoundAndCreatedByTheCustomResolver() {
+        public void ShouldReturnSomeClass6NotBoundAndCreatedByTheCustomResolver()
+        {
             // Arrange
 
             // Act
@@ -341,7 +373,8 @@ namespace ChelasInjection.Tests {
 
 
         [Test]
-        public void ShouldGivePriorirtyToCustomResolverAlthoughSomeClass7IsBound() {
+        public void ShouldGivePriorirtyToCustomResolverAlthoughSomeClass7IsBound()
+        {
             // Arrange
 
             // Act
@@ -368,7 +401,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldHavePerRequestActivationForNotBoundClass8ButWithCustomResolverProvidedInstance() {
+        public void ShouldHavePerRequestActivationForNotBoundClass8ButWithCustomResolverProvidedInstance()
+        {
             // Arrange
 
             // Act
@@ -381,7 +415,8 @@ namespace ChelasInjection.Tests {
         }
 
         [Test]
-        public void ShouldHaveSingletonActivationForSomeClass7CustomResolverProvidedInstances() {
+        public void ShouldHaveSingletonActivationForSomeClass7CustomResolverProvidedInstances()
+        {
             // Arrange
 
             // Act
@@ -394,17 +429,130 @@ namespace ChelasInjection.Tests {
         }
         #endregion Custom Resolver tests
 
+        #region Multiple Binding
+
+        [Test]
+        public void ShouldChooseSomeInterface10RedImplementationForDependencyOnSomeClass11()
+        {
+            // Arrange
+
+            // Act
+            SomeClass11 sc11 = _injector.GetInstance<SomeClass11>();
+
+
+            // Assert
+            Assert.IsNotNull(sc11);
+            Assert.AreSame(typeof(SomeInterface7And8Red), sc11.Si7.GetType());
+
+        }
+
+
+        [Test]
+        public void ShouldChooseSomeInterface10YellowImplementationForDependencyOnSomeClass12()
+        {
+            // Arrange
+
+            // Act
+            SomeClass12 sc12 = _injector.GetInstance<SomeClass12>();
+
+
+            // Assert
+            Assert.IsNotNull(sc12);
+            Assert.AreSame(typeof(SomeInterface7And8Yellow), sc12.Si7.GetType());
+
+        }
+
+        [Test]
+        public void ShouldReturnSomeInterface7DefaultForSomeInterface7DependencyOnSomeClass13WithNotConfiguredBlackAttribute()
+        {
+            // Arrange
+
+            // Act
+            SomeClass13 sc13 = _injector.GetInstance<SomeClass13>();
+
+            // Assert
+            Assert.AreSame(typeof(SomeInterface7Default), sc13.Si7.GetType());
+
+        }
+
+
+        [Test]
+        public void ShouldReturnSomeInterface7DefaultForSomeInterface7DependencyOnSomeClass14WithNoArgumentAttribute()
+        {
+            // Arrange
+
+            // Act
+            SomeClass14 sc14 = _injector.GetInstance<SomeClass14>();
+
+            // Assert
+            Assert.AreSame(typeof(SomeInterface7Default), sc14.Si7.GetType());
+
+        }
+
+        [Test]
+        public void ShouldReturnSomeInterface7DefaultForSomeInterface7RequestWhenNoSelectionAttributeIsdefined()
+        {
+            // Arrange
+
+            // Act
+            ISomeInterface7 isi7 = _injector.GetInstance<ISomeInterface7>();
+
+            // Assert
+            Assert.AreSame(typeof(SomeInterface7Default), isi7.GetType());
+
+        }
+
+        [Test]
+        public void ShouldReturnSomeInterface7And8RedForSomeInterface7RequestWhenSelectionAttributeIsdefined()
+        {
+            // Arrange
+
+            // Act
+            ISomeInterface7 isi7 = _injector.GetInstance<ISomeInterface7, RedAttribute>();
+
+            // Assert
+            Assert.AreSame(typeof(SomeInterface7And8Red), isi7.GetType());
+
+        }
+
+
+        [Test, ExpectedException(typeof(UnboundTypeException))]
+        public void ShouldThrowUnboundExceptionForISomeInterface8Request()
+        {
+            // Arrange
+
+            // Act
+            _injector.GetInstance<ISomeInterface8>();
+
+            // Assert
+        }
+
+
+        [Test]
+        public void ShouldReturnSomeInterface7And8RedForSomeInterface8RequestWhenSelectionAttributeIsdefined()
+        {
+            // Arrange
+
+            // Act
+            ISomeInterface8 isi8 = _injector.GetInstance<ISomeInterface8, RedAttribute>();
+
+            // Assert
+            Assert.AreSame(typeof(SomeInterface7And8Red), isi8.GetType());
+
+        }
+        #endregion Multiple Binding
+
         #region My Custom Tests Vilhena
 
         [Test]
-        public void PerformanceCreating100000SomeClass4ShouldBeLessThan2TimesNormalNew()
+        public void PerformanceCreating100000SomeClass4ShouldBeLessThan4TimesNormalNew()
         {
             // Arrange
             var newClock = new Stopwatch();
             var diClock = new Stopwatch();
 
-            ISomeInterface3 localVar = null;
 
+            ISomeInterface3 localVar = null;
 
             //Exludes the first that builds Expressiol call
             localVar = _injector.GetInstance<ISomeInterface3>();
@@ -429,11 +577,23 @@ namespace ChelasInjection.Tests {
             }
             newClock.Stop();
 
+            var objectsCountStop = GC.CollectionCount(0);
+
             Assert.NotNull(localVar);
 
             //Assert
-            Assert.LessOrEqual(diClock.ElapsedTicks/newClock.ElapsedTicks, 2);
+            Assert.LessOrEqual((float) diClock.ElapsedTicks/(float) newClock.ElapsedTicks, 4);
         }
+
+        [Test]
+        public void ShouldHaveSingletonActivationOnSomeClass7DependencyForSomeClass15()
+        {
+            var sc151 = _injector.GetInstance<SomeClass15>();
+            var sc152 = _injector.GetInstance<SomeClass15>();
+
+            Assert.AreSame(sc151.Sc16, sc152.Sc16);
+        }
+
 
         #endregion
     }

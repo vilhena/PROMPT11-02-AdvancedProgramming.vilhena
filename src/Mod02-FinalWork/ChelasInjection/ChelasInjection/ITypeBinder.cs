@@ -14,5 +14,7 @@ namespace ChelasInjection
 
         IActivationBinder<T> WithActivation { get; }
         ITypeBinder<T> InitializeObjectWith(Action<T> initialization);
+
+        void WhenArgumentHas<TAttribute>() where TAttribute : Attribute;
     }
 }
