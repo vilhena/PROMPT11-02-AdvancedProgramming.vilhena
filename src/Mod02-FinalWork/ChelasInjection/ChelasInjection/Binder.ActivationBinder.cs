@@ -1,32 +1,54 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ChelasInjection.ActivationPlugins;
 
 namespace ChelasInjection
 {
+
+    public static class MyActivationExtension
+    {
+        public static ITypeBinder<T> AllwaysNew<T>(this IActivationBinder<T> activationBinder)
+        {
+            activationBinder.GetBinder().CurrentConfiguration.ActivationPlugin = new AllwaysNewActivation();
+            return new Binder.TypeBinder<T>(activationBinder.GetBinder());
+        }
+    }
+
     partial class Binder
     {
-        class ActivationBinder<T> : IActivationBinder<T>
+        #region Nested type: ActivationBinder
+
+        public class ActivationBinder<T> : IActivationBinder<T>
         {
-            private readonly Binder _binder;
+            private static Binder _binder;
 
             public ActivationBinder(Binder binder)
             {
-                this._binder = binder;
+                _binder = binder;
             }
+
+            #region IActivationBinder<T> Members
 
             public ITypeBinder<T> PerRequest()
             {
-                this._binder.CurrentConfiguration.ActivationType = ActivationType.PerRequest;
+                _binder.CurrentConfiguration.ActivationPlugin = PerRequestActivation.Instance;
                 return new TypeBinder<T>(_binder);
             }
 
             public ITypeBinder<T> Singleton()
             {
-                this._binder.CurrentConfiguration.ActivationType = ActivationType.Singleton;
+                _binder.CurrentConfiguration.ActivationPlugin = SingletonActivation.Instance;
                 return new TypeBinder<T>(_binder);
             }
+
+            public Binder GetBinder()
+            {
+                return _binder;
+            }
+
+            #endregion
         }
+        
+
+        #endregion
     }
 }

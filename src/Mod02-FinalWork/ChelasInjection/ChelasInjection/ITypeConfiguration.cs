@@ -1,15 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+using ChelasInjection.ActivationPlugins;
 
 namespace ChelasInjection
 {
-    internal class TypeKey
+    public class TypeKey
     {
-        private readonly Type _type;
         private readonly Type _attributeType;
+        private readonly Type _type;
+
+        public TypeKey(Type type, Type attributeType)
+        {
+            _type = type;
+            _attributeType = attributeType;
+        }
+
+        public TypeKey(Type type)
+        {
+            _type = type;
+            _attributeType = null;
+        }
+
+        public Type Type
+        {
+            get { return _type; }
+        }
+
+        public Type AttributeType
+        {
+            get { return _attributeType; }
+        }
 
         public bool Equals(TypeKey other)
         {
@@ -33,31 +54,17 @@ namespace ChelasInjection
                 return (_type.GetHashCode()*397) ^ (_attributeType != null ? _attributeType.GetHashCode() : 0);
             }
         }
-
-        public TypeKey(Type type, Type attributeType)
-        {
-            _type = type;
-            _attributeType = attributeType;
-        }
-
-        public TypeKey(Type type)
-        {
-            _type = type;
-            _attributeType = null;
-        }
-
-        public Type Type { get { return _type; } }
-        public Type AttributeType { get { return _attributeType; } }
     }
 
-    interface ITypeConfiguration
+    internal interface ITypeConfiguration
     {
-        ActivationType ActivationType { get; set; }
+        //ActivationType ActivationType { get; set; }
         Type Source { get; }
         Type Target { get; }
         List<Type> ConstructorArguments { get; set; }
 
-        //Dictionary<Type, ITypeConfiguration> ArgumentsConfiguration { get; set; }
+        IActivationPlugin ActivationPlugin { get; set; }
+
         Type ArgumentType { get; set; }
 
         Func<object> ConstructorValues { get; set; }

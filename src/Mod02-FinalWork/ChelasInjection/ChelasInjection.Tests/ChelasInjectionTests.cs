@@ -545,7 +545,7 @@ namespace ChelasInjection.Tests {
         #region My Custom Tests Vilhena
 
         [Test]
-        public void PerformanceCreating100000SomeClass4ShouldBeLessThan4TimesNormalNew()
+        public void PerformanceCreating100000ISomeInterface3ShouldBeLessThan10TimesNormalNew()
         {
             // Arrange
             var newClock = new Stopwatch();
@@ -582,7 +582,7 @@ namespace ChelasInjection.Tests {
             Assert.NotNull(localVar);
 
             //Assert
-            Assert.LessOrEqual((float) diClock.ElapsedTicks/(float) newClock.ElapsedTicks, 4);
+            Assert.LessOrEqual((float) diClock.ElapsedTicks/(float) newClock.ElapsedTicks, 10);
         }
 
         [Test]

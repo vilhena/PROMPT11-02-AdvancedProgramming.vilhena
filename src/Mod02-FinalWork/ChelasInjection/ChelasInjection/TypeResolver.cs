@@ -3,26 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using ChelasInjection.ActivationPlugins;
 using ChelasInjection.Attributes;
 using ChelasInjection.Cache;
 using ChelasInjection.Exceptions;
 
 namespace ChelasInjection
 {
-    
-
     internal class TypeResolver
     {
         private readonly Binder _binder;
-        private readonly Dictionary<TypeKey, object> _sigletonBag = new Dictionary<TypeKey, object>();
-        private HashSet<TypeKey> _typesCallResolveStack;
-        private Dictionary<TypeKey, object> _requestObjectBag;
-        private bool _perRequest;
-        private readonly ExpressionRecorder _recorder;
 
         private readonly Dictionary<TypeKey, Func<object>> _optimizationCallCache =
             new Dictionary<TypeKey, Func<object>>();
+
+        private readonly ExpressionRecorder _recorder;
+
+        private HashSet<TypeKey> _typesCallResolveStack;
+
 
         public TypeResolver(Binder binder)
         {
@@ -30,130 +28,81 @@ namespace ChelasInjection
             _recorder = new ExpressionRecorder();
         }
 
+
         public object Resolve(TypeKey type)
         {
             if (_optimizationCallCache.ContainsKey(type))
                 return _optimizationCallCache[type]();
 
             _typesCallResolveStack = new HashSet<TypeKey>();
-            SetupPerRequest(type);
 
+            _binder.ActivationPlugin(type).BeginRequest();
             _recorder.Start();
-
             var newObj = ResolveType(type);
+            _recorder.Stop();
+            _binder.ActivationPlugin(type).EndRequest();
 
+            //Gets Recorded Expression
             var exp = _recorder.Result();
             if (exp != null)
             {
-                Func<object> method;
-                if (_binder.IsSingleton(type))
-                    method = () => (newObj);
-                else
-                    method = (Func<object>)exp.Compile();
-
+                var method = (Func<object>) exp.Compile();
                 _optimizationCallCache.Add(type, method);
             }
 
             return newObj;
         }
 
-        private void SetupPerRequest(TypeKey type)
-        {
-            _requestObjectBag = new Dictionary<TypeKey, object>();
-            _perRequest = false;
-
-
-            if (!_binder.IsConfigured(type)) 
-                return;
-
-            var config = _binder.Configuration[type];
-
-            if (config.ActivationType == ActivationType.PerRequest || config.ActivationType == ActivationType.Singleton)
-                _perRequest = true;
-        }
-
 
         private object ResolveType(TypeKey type)
         {
-            var newObject = ResolveCustomHandler(type);
+            object newObject = _binder.ActivationPlugin(type).GetInstance(type);
             if (newObject != null)
                 return newObject;
 
-            newObject = ResolvePerRequestObject(type);
+            newObject = ResolveCustomHandler(type);
             if (newObject != null)
                 return newObject;
 
             newObject = _binder.IsConfigured(type) ? ResolveConfiguredType(type) : ResolveUnConfiguredType(type);
 
             ResolveCustomInitialization(type, newObject);
-            AddPerRequestObject(type, newObject);
+
+            _binder.ActivationPlugin(type).NewInstance(type, newObject);
 
             return newObject;
         }
 
         private object ResolveCustomHandler(TypeKey targetType)
         {
-            if (_sigletonBag.ContainsKey(targetType))
-                return _sigletonBag[targetType];
-
-            var newObj = _binder.CustomResolve(targetType.Type);
+            KeyValuePair<ResolverHandler, object> newObj = _binder.CustomResolve(targetType.Type);
             if (newObj.Value != null)
             {
-                _recorder.CustomResolve(newObj.Key, newObj.Value, _binder, targetType.Type);
-                ActivatePerRequest();
-
-                if (_binder.IsSingleton(targetType))
-                    _sigletonBag.Add(targetType, newObj.Value);
-
+                _recorder.CustomResolve(newObj.Key, newObj.Value, _binder, targetType.Type,
+                                        _binder.ActivationPlugin(targetType));
+                _binder.ActivationPlugin(targetType).NewInstance(targetType, newObj.Value);
+                
                 ResolveCustomInitialization(targetType, newObj.Value);
             }
             return newObj.Value;
         }
 
-        private object ResolvePerRequestObject(TypeKey type)
-        {
-            if (_perRequest && _requestObjectBag.ContainsKey(type))
-                return _requestObjectBag[type];
-            return null;
-        }
-
-
         private object ResolveUnConfiguredType(TypeKey type)
         {
             object newObject = null;
 
-            //TODO: detect if exists multiple defaults
-
-            if (type.Type.GetConstructors()
-                .Where(c =>
-                    c.GetCustomAttributes(false).Length >0
-                    ).Where(
-                    c =>
-                    c.GetCustomAttributes(false)[0]
-                    .GetType()
-                    .Equals(typeof(DefaultConstructorAttribute)))
-                    .Count() > 1)
-                throw new MultipleDefaultConstructorAttributesException();
-
-            if (type.Type.GetConstructor(new Type[] { }) != null)
-            {
-                newObject = _recorder.ActivatorCreateInstance(type.Type, _binder.IsSingleton(type));
-            }
-
-            if(type.Type.GetConstructors().Length == 0)
+            if (type.Type.GetConstructors().Length == 0)
                 throw new UnboundTypeException();
 
-            //TODO: change this
-            var newConfig = new TypeConfiguration(type.Type, type.Type);
-
-
-            
-
-            newConfig.Constructor = type.Type.GetConstructors()[0];
-            newConfig.ConstructorType = ConstructorType.WithCustom;
+            //TODO: the binder must do this
+            var newConfig = new TypeConfiguration(type.Type, type.Type)
+                                {
+                                    //Constructor = type.Type.GetConstructors()[0],
+                                    ConstructorType = ConstructorType.WithCustom,
+                                    ActivationPlugin = _binder.ActivationPlugin(type)
+                                };
 
             _binder.Configuration.Add(type, newConfig);
-
             newObject = ResolveConfiguredType(type);
 
             return newObject;
@@ -168,48 +117,89 @@ namespace ChelasInjection
 
             _typesCallResolveStack.Add(type);
 
+            newObject = _binder.ActivationPlugin(type).GetInstance(type);
+            if (newObject != null)
+                return newObject;
+
             var config = _binder.Configuration[type];
 
-            switch (config.ConstructorType)
-            {
-                case ConstructorType.NoArguments:
-                    newObject = _recorder.ActivatorCreateInstance(config.Target,
-                                                                  _binder.IsSingleton(new TypeKey(config.Source)));
-                    break;
-                case ConstructorType.Default:
-                case ConstructorType.WithCustom:
-                    newObject = CreateObjectWithConstructor(config);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            if (config.Constructor == null)
+                FillTypeConstructor(config);
 
-            AddIfSingleton(newObject, config);
+            newObject = CreateObjectWithConstructor(type, config);
+
+            _binder.ActivationPlugin(type).NewInstance(type, newObject);
 
             _typesCallResolveStack.Remove(type);
             return newObject;
         }
 
-
-        private void AddIfSingleton(object newObject, ITypeConfiguration config)
+        private void FillTypeConstructor(ITypeConfiguration configuration)
         {
-            if (config.ActivationType == ActivationType.Singleton)
-                _sigletonBag.Add(new TypeKey(config.Source), newObject);
-        }
+            configuration.ConstructorType = ConstructorType.Default;
 
-        private void AddPerRequestObject(TypeKey type, object newObject)
-        {
-            if (_perRequest)
+            //Multiple DefaultAttributes
+            if (configuration.Target.GetConstructors()
+                    .Where(c =>
+                           c.GetCustomAttributes(false).Length > 0
+                    ).Where(
+                        c =>
+                        c.GetCustomAttributes(false)[0]
+                            .GetType()
+                            .Equals(typeof (DefaultConstructorAttribute)))
+                    .Count() > 1)
+                throw new MultipleDefaultConstructorAttributesException();
+
+            //DefaultAttribute
+            configuration.Constructor =
+                configuration.Target.GetConstructors().Where(
+                    c =>
+                    c.GetCustomAttributes(false)
+                        .Where(a => a.GetType().Equals(typeof (DefaultConstructorAttribute))).FirstOrDefault() != null)
+                    .FirstOrDefault();
+
+
+            if (configuration.Constructor == null)
             {
-                _requestObjectBag.Add(type, newObject);
+                ConstructorInfo[] availableConstructors = configuration.Target.GetConstructors()
+                    .Where(constructorInfo => constructorInfo.GetParameters()
+                                                  .All(p => TargetTypeIsConfigured(new TypeKey(p.ParameterType)))).
+                    ToArray();
+
+                //default ctor with max parameters
+                configuration.Constructor =
+                    availableConstructors.Where(c => c.GetParameters().Length ==
+                                                     availableConstructors.Max(
+                                                         x => x.GetParameters().Length))
+                        .FirstOrDefault();
+
+                if (configuration.Constructor == null)
+                {
+                    configuration.Constructor = configuration.Target.GetConstructor(new Type[] {});
+
+                    if (configuration.Constructor == null)
+                        throw new UnboundTypeException();
+                }
             }
         }
 
-        private object CreateObjectWithConstructor(ITypeConfiguration config)
+        private bool TargetTypeIsConfigured(TypeKey targetType)
+        {
+            if (_binder.Configuration.ContainsKey(targetType))
+                return true;
+            if (_binder.Configuration.Values.FirstOrDefault(c => c.Target == targetType.Type) != null)
+                return true;
+
+            return false;
+        }
+
+
+        private object CreateObjectWithConstructor(TypeKey key,ITypeConfiguration config)
         {
             var args = config.Constructor.GetParameters().Select(p => GetParameterObject(p, config)).ToArray();
-            return _recorder.ActivatorCreateInstance(config.Target, args,
-                                                     _binder.IsSingleton(new TypeKey(config.Source)));
+
+            return _recorder.ActivatorCreateInstance(key, config.Target, args,
+                                                     config.ActivationPlugin);
         }
 
         private object GetParameterObject(ParameterInfo parameterInfo, ITypeConfiguration config)
@@ -221,7 +211,7 @@ namespace ChelasInjection
                 parameterAttb = parameterInfo.GetCustomAttributes(false)[0].GetType();
 
             newObject = GetValuePropertyFromConstructorValues(parameterInfo, config);
-            if(newObject == null)
+            if (newObject == null)
             {
                 if (_binder.IsConfigured(new TypeKey(parameterInfo.ParameterType, parameterAttb)))
                     newObject = ResolveType(new TypeKey(parameterInfo.ParameterType, parameterAttb));
@@ -230,7 +220,6 @@ namespace ChelasInjection
                 else
                     throw new NotImplementedException("CANNOT RESOLVE PARAMETER");
             }
-                        
 
             if (newObject == null)
                 throw new UnboundTypeException();
@@ -243,32 +232,23 @@ namespace ChelasInjection
             object propObject = null;
             if (config.ConstructorValues != null)
             {
-
-                var customArgs = _recorder.GetConstructorValues(config.ConstructorValues);
-                var valueProperty =
+                object customArgs = _recorder.GetConstructorValues(config.ConstructorValues);
+                PropertyInfo valueProperty =
                     customArgs.GetType()
                         .GetProperties()
                         .FirstOrDefault(p => p.PropertyType.Equals(parameterInfo.ParameterType));
                 if (valueProperty != null)
-                    propObject = valueProperty.GetValue(customArgs, new object[] { });
+                    propObject = valueProperty.GetValue(customArgs, new object[] {});
             }
             return propObject;
         }
 
 
-        private void ActivatePerRequest()
-        {
-            _perRequest = true;
-        }
-
         private void ResolveCustomInitialization(TypeKey targetType, object newObj)
         {
-            var initialization = _binder.GetInitializeObjectWith(targetType);
+            Action<object> initialization = _binder.GetInitializeObjectWith(targetType);
             if (initialization != null)
                 _recorder.InitializeObjectWith(initialization, newObj);
         }
-
-
-
     }
 }

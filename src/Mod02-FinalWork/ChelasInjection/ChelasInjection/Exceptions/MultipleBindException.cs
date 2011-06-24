@@ -1,8 +1,8 @@
+using System;
+using System.Runtime.Serialization;
+
 namespace ChelasInjection.Exceptions
 {
-    using System;
-    using System.Runtime.Serialization;
-
     [Serializable]
     public class MultipleBindException : ChelasInjectionException
     {

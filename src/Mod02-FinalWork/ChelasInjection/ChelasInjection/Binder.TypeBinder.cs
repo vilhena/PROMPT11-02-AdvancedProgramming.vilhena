@@ -1,45 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ChelasInjection.ActivationPlugins;
 
 namespace ChelasInjection
 {
     partial class Binder
     {
+        #region Nested type: TypeBinder
 
-        class TypeBinder<T> : ITypeBinder<T>
+        public class TypeBinder<T> : ITypeBinder<T>
         {
             private readonly Binder _binder;
 
             public TypeBinder(Binder binder)
             {
-                this._binder = binder;
+                _binder = binder;
             }
+
+            #region ITypeBinder<T> Members
 
             public IConstructorBinder<T> WithConstructor(params Type[] constructorArguments)
             {
-                this._binder.CurrentConfiguration.ConstructorType = ConstructorType.WithCustom;
-                this._binder.CurrentConfiguration.Constructor = typeof (T).GetConstructor(constructorArguments);
-                this._binder.CurrentConfiguration.ConstructorArguments = new List<Type>(constructorArguments);
+                _binder.CurrentConfiguration.ConstructorType = ConstructorType.WithCustom;
+                _binder.CurrentConfiguration.Constructor = typeof (T).GetConstructor(constructorArguments);
+                _binder.CurrentConfiguration.ConstructorArguments = new List<Type>(constructorArguments);
                 return new ConstructorBinder<T>(_binder);
             }
 
             public ITypeBinder<T> WithNoArgumentsConstructor()
             {
-                this._binder.CurrentConfiguration.ConstructorType = ConstructorType.NoArguments;
+                _binder.CurrentConfiguration.ConstructorType = ConstructorType.NoArguments;
+                _binder.CurrentConfiguration.Constructor =
+                    _binder.CurrentConfiguration.Target.GetConstructor(new Type[] {});
                 return this;
             }
 
             public ITypeBinder<T> WithSingletonActivation()
             {
-                this._binder.CurrentConfiguration.ActivationType = ActivationType.Singleton;
+                _binder.CurrentConfiguration.ActivationPlugin = SingletonActivation.Instance;
                 return this;
             }
 
             public ITypeBinder<T> WithPerRequestActivation()
             {
-                this._binder.CurrentConfiguration.ActivationType = ActivationType.PerRequest;
+                _binder.CurrentConfiguration.ActivationPlugin = PerRequestActivation.Instance;
                 return this;
             }
 
@@ -50,18 +54,20 @@ namespace ChelasInjection
 
             public ITypeBinder<T> InitializeObjectWith(Action<T> initialization)
             {
-
-                this._binder.CurrentConfiguration.InitializationFunc
+                _binder.CurrentConfiguration.InitializationFunc
                     = (o => initialization((T) o));
                 return this;
             }
 
             public void WhenArgumentHas<TAttribute>() where TAttribute : Attribute
             {
-                this._binder.CurrentConfiguration.IsArgumentDependent = true;
-                this._binder.CurrentConfiguration.ArgumentType = typeof (TAttribute);
+                _binder.CurrentConfiguration.IsArgumentDependent = true;
+                _binder.CurrentConfiguration.ArgumentType = typeof (TAttribute);
             }
+
+            #endregion
         }
 
+        #endregion
     }
 }

@@ -4,5 +4,6 @@
     {
         ITypeBinder<T> PerRequest();
         ITypeBinder<T> Singleton();
+        Binder GetBinder();
     }
 }

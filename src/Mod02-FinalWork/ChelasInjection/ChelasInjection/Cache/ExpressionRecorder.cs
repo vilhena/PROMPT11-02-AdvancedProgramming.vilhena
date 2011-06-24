@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using ChelasInjection.ActivationPlugins;
 
 namespace ChelasInjection.Cache
 {
@@ -11,10 +11,17 @@ namespace ChelasInjection.Cache
     {
         private Queue<Expression> _executionQueue = new Queue<Expression>();
         private Dictionary<object, Expression> _objectVariables = new Dictionary<object, Expression>();
-        private int _varNameCount = 0;
+        private int _varNameCount;
 
-        private string NewVariable { get { return "local" + ++_varNameCount; } }
-        private string CurrentVariable { get { return "local" + _varNameCount; } }
+        private string NewVariable
+        {
+            get { return "local" + ++_varNameCount; }
+        }
+
+        private string CurrentVariable
+        {
+            get { return "local" + _varNameCount; }
+        }
 
 
         public void Start()
@@ -22,10 +29,11 @@ namespace ChelasInjection.Cache
             _varNameCount = 0;
             _executionQueue = new Queue<Expression>();
             _objectVariables = new Dictionary<object, Expression>();
-
         }
 
-        public void Stop(){}
+        public void Stop()
+        {
+        }
 
         public LambdaExpression Result()
         {
@@ -37,20 +45,19 @@ namespace ChelasInjection.Cache
 
             while (_executionQueue.Count > 0)
             {
-                var ex = _executionQueue.Dequeue();
+                Expression ex = _executionQueue.Dequeue();
 
                 if (ex.NodeType == ExpressionType.Assign)
                 {
                     var assign = ex as BinaryExpression;
                     listLocal.Add((ParameterExpression) assign.Left);
                 }
-                listAssigns.Add(ex);   
+                listAssigns.Add(ex);
             }
-
-            listAssigns.Add(listLocal.Last());
             
+            listAssigns.Add(listLocal.Last());
 
-            var block = Expression.Block(
+            BlockExpression block = Expression.Block(
                 listLocal.ToArray(),
                 listAssigns.ToArray()
                 );
@@ -58,44 +65,28 @@ namespace ChelasInjection.Cache
             return Expression.Lambda<Func<object>>(
                 block
                 );
-
         }
 
 
-        public object ActivatorCreateInstance(Type type, bool isSingleton)
+        public object ActivatorCreateInstance(TypeKey type, Type targetType, object[] args, IActivationPlugin activationPlugin)
         {
-            var newObj = Activator.CreateInstance(type);
+            object newObj = Activator.CreateInstance(targetType, args);
+            activationPlugin.NewInstance(type, newObj);
 
-            var newVar = Expression.Variable(type, NewVariable);
+            var activationType = activationPlugin.GetConstructorExpression();
+
+            ConstructorInfo ctor = targetType.GetConstructor(args.Select(o => o.GetType()).ToArray());
+
+            ParameterExpression newVar = Expression.Variable(targetType, NewVariable);
+
             Expression ex;
 
-            if (isSingleton)
-                ex = Expression.Constant(newObj);
-            else
-                ex = Expression.New(type);
-            
-            _objectVariables.Add(newObj,newVar);
-            _executionQueue.Enqueue(Expression.Assign(newVar, ex));
-
-            return newObj;
-        }
-
-        public object ActivatorCreateInstance(Type type, object[] args, bool  isSingleton)
-        {
-            var newObj = Activator.CreateInstance(type, args);
-
-            var ctor = type.GetConstructor(args.Select(o => o.GetType()).ToArray());
-
-            var newVar = Expression.Variable(type, NewVariable);
-            
-            Expression ex;
-
-            if (isSingleton)
+            if (activationType == ExpressionType.Constant)
                 ex = Expression.Constant(newObj);
             else
                 ex = Expression.New(ctor,
-                                   args.Select(FindVariableName));
-            
+                                    args.Select(FindVariableName));
+
 
             _objectVariables.Add(newObj, newVar);
             _executionQueue.Enqueue(Expression.Assign(newVar, ex));
@@ -115,10 +106,10 @@ namespace ChelasInjection.Cache
 
         public object PropertyGetValue(PropertyInfo pinfo, object obj)
         {
-            var pValue = pinfo.GetValue(obj, new object[] {});
+            object pValue = pinfo.GetValue(obj, new object[] {});
 
-            var newVar = Expression.Variable(pinfo.PropertyType, NewVariable);
-            var ex =
+            ParameterExpression newVar = Expression.Variable(pinfo.PropertyType, NewVariable);
+            MemberExpression ex =
                 Expression.Property(_objectVariables[obj], pinfo);
 
 
@@ -130,12 +121,12 @@ namespace ChelasInjection.Cache
 
         internal object GetConstructorValues(Func<object> func)
         {
-            var retType = func();
+            object retType = func();
 
             if (!_objectVariables.ContainsKey(retType))
             {
-                var newVar = Expression.Variable(typeof(object), NewVariable);
-                var ex =
+                ParameterExpression newVar = Expression.Variable(typeof (object), NewVariable);
+                MethodCallExpression ex =
                     Expression.Call(func.Method);
 
                 _objectVariables.Add(retType, newVar);
@@ -149,26 +140,35 @@ namespace ChelasInjection.Cache
             //initialize object
             initialization(newObj);
 
-            var ex = Expression.Invoke(Expression.Constant(initialization),
-                                     _objectVariables[newObj]);
-            
+            InvocationExpression ex = Expression.Invoke(Expression.Constant(initialization),
+                                                        _objectVariables[newObj]);
+
             _executionQueue.Enqueue(ex);
         }
 
-        internal void CustomResolve(ResolverHandler resolverHandler, object obj, Binder binder, Type targetType)
+        internal void CustomResolve(ResolverHandler resolverHandler, object obj, Binder binder, Type targetType, IActivationPlugin activationPlugin)
         {
             //initialize object
+            var ctorExpression = activationPlugin.GetConstructorExpression();
 
+            ParameterExpression newVar = Expression.Variable(obj.GetType(), NewVariable);
+            BinaryExpression ex;
 
-            var newVar = Expression.Variable(obj.GetType(), NewVariable);
-            var del = Expression.Invoke(Expression.Constant(resolverHandler)
-                                        , new Expression[]
-                                              {
-                                                  Expression.Constant(binder),
-                                                  Expression.Constant(targetType)
-                                              });
+            if (ctorExpression == ExpressionType.Constant)
+            {
+                ex = Expression.Assign(newVar, Expression.Constant(obj));
+            }
+            else
+            {
+                InvocationExpression del = Expression.Invoke(Expression.Constant(resolverHandler)
+                                                             , new Expression[]
+                                                                   {
+                                                                       Expression.Constant(binder),
+                                                                       Expression.Constant(targetType)
+                                                                   });
 
-            var ex = Expression.Assign(newVar, Expression.Convert(del, obj.GetType()));
+                ex = Expression.Assign(newVar, Expression.Convert(del, obj.GetType()));
+            }
 
             _objectVariables.Add(obj, newVar);
 

@@ -40,6 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivationPlugins\AllwaysNewActivation.cs" />
+    <Compile Include="ActivationPlugins\IActivationPlugin.cs" />
+    <Compile Include="ActivationPlugins\PerRequestActivation.cs" />
+    <Compile Include="ActivationPlugins\SingletonActivation.cs" />
     <Compile Include="Binder.cs" />
     <Compile Include="Attributes\DefaultConstructorAttribute.cs" />
     <Compile Include="Binder.ActivationBinder.cs" />
@@ -60,6 +64,7 @@
     <Compile Include="ITypeBinder.cs" />
     <Compile Include="ITypeConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeBinder.cs" />
     <Compile Include="TypeConfiguration.cs" />
     <Compile Include="TypeResolver.cs" />
   </ItemGroup>

@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using ChelasInjection.Exceptions;
 
 namespace ChelasInjection
 {
@@ -11,7 +6,7 @@ namespace ChelasInjection
     {
         private readonly Binder _myBinder;
         private readonly TypeResolver _myResolver;
-        
+
         public Injector(Binder myBinder)
         {
             _myBinder = myBinder;
@@ -21,7 +16,7 @@ namespace ChelasInjection
 
         public T GetInstance<T>()
         {
-            return (T) _myResolver.Resolve(new TypeKey(typeof(T)));
+            return (T) _myResolver.Resolve(new TypeKey(typeof (T)));
         }
 
         public T GetInstance<T, TA>() where TA : Attribute
@@ -33,6 +28,5 @@ namespace ChelasInjection
         {
             throw new NotImplementedException();
         }
-
     }
 }
