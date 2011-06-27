@@ -32,15 +32,15 @@ Gonçalo Vilhena
 ## Compromissos ##
 
  * O código gerado utilizando expressions em alguns casos não é óptimo, por exemplo A(B(),C(B)), neste caso o código gerado seria:
-   *`var1 = new B()`
-   *`var2 = new C(var1)`
-   *`var3 = new A(var1, var2)`
-   *`ret var3`
+   * `var1 = new B()`
+   * `var2 = new C(var1)`
+   * `var3 = new A(var1, var2)`
+   * `ret var3`
   * este código é optimo mas caso o objecto A seja configurado como singleton então o código gerado será:
-   *`var1 = new B()`
-   *`var2 = new C(var1)`
-   *`var3 = .Constant(objecA)`
-   *`ret var3`
+   * `var1 = new B()`
+   * `var2 = new C(var1)`
+   * `var3 = .Constant(objecA)`
+   * `ret var3`
   * Assim podemos ver que a criação das variáveis 1 e 2 são desnecessárias. Esta situação poderia ser contornada utilizando mais alguma lógica no momento de geração do código
 
  * No exemplo acima podemos também identificar que a criação da variável 3 é desnecessária, assim como a variável 2 que podia ser incluída directamente no construtor do A, isto acontece porque podemos em alguns objecto necessitar de inicializar campos ou propriedades 
