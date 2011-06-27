@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ChelasInjection.ActivationPlugins;
 
-namespace ChelasInjection.Cache
+namespace ChelasInjection.Expressions
 {
     internal class ExpressionRecorder
     {

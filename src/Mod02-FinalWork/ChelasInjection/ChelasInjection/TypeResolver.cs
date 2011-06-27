@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using ChelasInjection.ActivationPlugins;
 using ChelasInjection.Attributes;
-using ChelasInjection.Cache;
+using ChelasInjection.Expressions;
 using ChelasInjection.Exceptions;
 
 namespace ChelasInjection
@@ -31,6 +31,7 @@ namespace ChelasInjection
 
         public object Resolve(TypeKey type)
         {
+            //Compiled Expression optimization
             if (_optimizationCallCache.ContainsKey(type))
                 return _optimizationCallCache[type]();
 
@@ -56,16 +57,20 @@ namespace ChelasInjection
 
         private object ResolveType(TypeKey type)
         {
+            // Try using Activation Cache
             object newObject = _binder.ActivationPlugin(type).GetInstance(type);
             if (newObject != null)
                 return newObject;
 
+            // Try resolve using CustomHandler
             newObject = ResolveCustomHandler(type);
             if (newObject != null)
                 return newObject;
 
+            //Resolve Object
             newObject = _binder.IsConfigured(type) ? ResolveConfiguredType(type) : ResolveUnConfiguredType(type);
 
+            //Aply initialization
             ResolveCustomInitialization(type, newObject);
 
             _binder.ActivationPlugin(type).NewInstance(type, newObject);
@@ -87,6 +92,12 @@ namespace ChelasInjection
             return newObj.Value;
         }
 
+        /// <summary>
+        /// Creates one entry on the configuration dictionary
+        /// calls the ResolveConfiguredType
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private object ResolveUnConfiguredType(TypeKey type)
         {
             object newObject = null;
@@ -94,7 +105,6 @@ namespace ChelasInjection
             if (type.Type.GetConstructors().Length == 0)
                 throw new UnboundTypeException();
 
-            //TODO: the binder must do this
             var newConfig = new TypeConfiguration(type.Type, type.Type)
                                 {
                                     //Constructor = type.Type.GetConstructors()[0],
@@ -123,6 +133,7 @@ namespace ChelasInjection
 
             var config = _binder.Configuration[type];
 
+            //resolves the Constructor just one time
             if (config.Constructor == null)
                 FillTypeConstructor(config);
 
@@ -161,6 +172,7 @@ namespace ChelasInjection
 
             if (configuration.Constructor == null)
             {
+                //Finds all the constructors that can be binded
                 ConstructorInfo[] availableConstructors = configuration.Target.GetConstructors()
                     .Where(constructorInfo => constructorInfo.GetParameters()
                                                   .All(p => TargetTypeIsConfigured(new TypeKey(p.ParameterType)))).
@@ -175,6 +187,7 @@ namespace ChelasInjection
 
                 if (configuration.Constructor == null)
                 {
+                    //Try using the constructor with no parammeters
                     configuration.Constructor = configuration.Target.GetConstructor(new Type[] {});
 
                     if (configuration.Constructor == null)
@@ -202,6 +215,12 @@ namespace ChelasInjection
                                                      config.ActivationPlugin);
         }
 
+        /// <summary>
+        /// Finds the object for each parameter info, if needed resolves type
+        /// </summary>
+        /// <param name="parameterInfo"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
         private object GetParameterObject(ParameterInfo parameterInfo, ITypeConfiguration config)
         {
             object newObject = null;
@@ -246,7 +265,7 @@ namespace ChelasInjection
 
         private void ResolveCustomInitialization(TypeKey targetType, object newObj)
         {
-            Action<object> initialization = _binder.GetInitializeObjectWith(targetType);
+            var initialization = _binder.GetInitializeObjectWith(targetType);
             if (initialization != null)
                 _recorder.InitializeObjectWith(initialization, newObj);
         }

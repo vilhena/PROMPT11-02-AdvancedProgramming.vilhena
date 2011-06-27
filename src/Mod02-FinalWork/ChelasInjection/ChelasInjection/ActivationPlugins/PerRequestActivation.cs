@@ -24,7 +24,8 @@ namespace ChelasInjection.ActivationPlugins
             if(_requestObjectBag == null)
                 BeginRequest();
 
-            if (_requestObjectBag.ContainsKey(objectType))
+            if (_requestObjectBag != null
+                && _requestObjectBag.ContainsKey(objectType))
                 return _requestObjectBag[objectType];
             return null;
         }

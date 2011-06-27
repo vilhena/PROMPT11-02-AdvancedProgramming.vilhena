@@ -25,12 +25,10 @@ namespace ChelasInjection
 
         public bool IsArgumentDependent { get; set; }
 
-        #region ITypeConfiguration Members
 
         public Type Source { get; private set; }
         public Type Target { get; private set; }
 
-        //public ActivationType ActivationType { get; set; }
 
         public List<Type> ConstructorArguments { get; set; }
 
@@ -43,9 +41,6 @@ namespace ChelasInjection
         public ConstructorInfo Constructor { get; set; }
 
         public Type ArgumentType { get; set; }
-
-        #endregion
-
 
         public IActivationPlugin ActivationPlugin { get; set; }
     }

@@ -49,8 +49,7 @@
     <Compile Include="Binder.ActivationBinder.cs" />
     <Compile Include="Binder.ConstructorBinder.cs" />
     <Compile Include="Binder.TypeBinder.cs" />
-    <Compile Include="ActivationType.cs" />
-    <Compile Include="Cache\ExpressionRecorder.cs" />
+    <Compile Include="Expressions\ExpressionRecorder.cs" />
     <Compile Include="ConstructorType.cs" />
     <Compile Include="Exceptions\ChelasInjectionException.cs" />
     <Compile Include="Exceptions\CircularDependencyException.cs" />
@@ -64,7 +63,6 @@
     <Compile Include="ITypeBinder.cs" />
     <Compile Include="ITypeConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TypeBinder.cs" />
     <Compile Include="TypeConfiguration.cs" />
     <Compile Include="TypeResolver.cs" />
   </ItemGroup>

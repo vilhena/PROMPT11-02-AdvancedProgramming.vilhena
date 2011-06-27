@@ -4,6 +4,9 @@ using ChelasInjection.ActivationPlugins;
 namespace ChelasInjection
 {
 
+    /// <summary>
+    /// Example of one Activation Extension Allways New Object
+    /// </summary>
     public static class MyActivationExtension
     {
         public static ITypeBinder<T> AllwaysNew<T>(this IActivationBinder<T> activationBinder)

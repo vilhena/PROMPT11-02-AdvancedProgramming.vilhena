@@ -10,7 +10,6 @@ namespace ChelasInjection.ActivationPlugins
     {
         object GetInstance(TypeKey objectType);
         void NewInstance(TypeKey key, object obj);
-        //TODO: Implement event
         void BeginRequest();
         void EndRequest();
         ExpressionType GetConstructorExpression();

@@ -91,16 +91,6 @@ namespace ChelasInjection
             return new KeyValuePair<ResolverHandler, object>(del, obj);
         }
 
-        //internal bool IsSingleton(TypeKey type)
-        //{
-        //    //if (_configuration.ContainsKey(type))
-        //    //{
-        //    //    if (_configuration[type].ActivationType == ActivationType.Singleton)
-        //    //        return true;
-        //    //}
-        //    return false;
-        //}
-
         internal bool IsConfigured(TypeKey type)
         {
             return (_configuration.ContainsKey(type));
@@ -108,18 +98,16 @@ namespace ChelasInjection
 
         internal Action<object> GetInitializeObjectWith(TypeKey type)
         {
-            if (_configuration.ContainsKey(type))
-            {
-                return _configuration[type].InitializationFunc;
-            }
-            return null;
-        } 
+            return _configuration.ContainsKey(type)
+                       ? _configuration[type].InitializationFunc
+                       : null;
+        }
 
         internal IActivationPlugin ActivationPlugin(TypeKey type)
         {
-            if (IsConfigured(type))
-                return _configuration[type].ActivationPlugin;
-            return _defaultActivation;
+            return IsConfigured(type)
+                       ? _configuration[type].ActivationPlugin
+                       : _defaultActivation;
         }
 
         #endregion

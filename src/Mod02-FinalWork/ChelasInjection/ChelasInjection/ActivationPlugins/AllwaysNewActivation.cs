@@ -6,6 +6,9 @@ using System.Text;
 
 namespace ChelasInjection.ActivationPlugins
 {
+    /// <summary>
+    /// Plugin Implementation Example
+    /// </summary>
     class AllwaysNewActivation:IActivationPlugin
     {
         public object GetInstance(TypeKey objectType)
